@@ -1,0 +1,337 @@
+{
+  "generated_at": "2026-10-01T07:09:50.011Z",
+  "dataset": "25 synthetic authored regression fixtures; not real victim messages",
+  "provider": "No AI or Safe Browsing key",
+  "taxonomy_correct": 25,
+  "samples": 25,
+  "by_language": {
+    "en": {
+      "correct": 15,
+      "total": 15
+    },
+    "hi": {
+      "correct": 5,
+      "total": 5
+    },
+    "mr": {
+      "correct": 5,
+      "total": 5
+    }
+  },
+  "pack_timings_ms": [
+    2054.70875,
+    910.622875,
+    965.6489160000006,
+    1035.0223750000005,
+    874.0344999999998
+  ],
+  "median_pack_ms": 965.6489160000006,
+  "results": [
+    {
+      "id": 1,
+      "language": "en",
+      "expected": "utility_disconnection",
+      "actual": "utility_disconnection",
+      "correct": true,
+      "score": 60,
+      "verdict": "Scam",
+      "tool_events": 5,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 2,
+      "language": "en",
+      "expected": "kyc_phishing",
+      "actual": "kyc_phishing",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 3,
+      "language": "en",
+      "expected": "digital_arrest",
+      "actual": "digital_arrest",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 4,
+      "language": "en",
+      "expected": "parcel_scam",
+      "actual": "parcel_scam",
+      "correct": true,
+      "score": 70,
+      "verdict": "Scam",
+      "tool_events": 5,
+      "failed_tools": 0,
+      "unverified_findings": 3
+    },
+    {
+      "id": 5,
+      "language": "en",
+      "expected": "investment_fraud",
+      "actual": "investment_fraud",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 6,
+      "language": "en",
+      "expected": "job_task_scam",
+      "actual": "job_task_scam",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 7,
+      "language": "en",
+      "expected": "upi_refund",
+      "actual": "upi_refund",
+      "correct": true,
+      "score": 30,
+      "verdict": "Suspicious",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 8,
+      "language": "en",
+      "expected": "loan_fraud",
+      "actual": "loan_fraud",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 9,
+      "language": "en",
+      "expected": "lottery_fraud",
+      "actual": "lottery_fraud",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 10,
+      "language": "en",
+      "expected": "remote_access",
+      "actual": "remote_access",
+      "correct": true,
+      "score": 30,
+      "verdict": "Suspicious",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 11,
+      "language": "en",
+      "expected": "family_impersonation",
+      "actual": "family_impersonation",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 12,
+      "language": "en",
+      "expected": "other",
+      "actual": "other",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 13,
+      "language": "en",
+      "expected": "other",
+      "actual": "other",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 14,
+      "language": "en",
+      "expected": "kyc_phishing",
+      "actual": "kyc_phishing",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 15,
+      "language": "en",
+      "expected": "parcel_scam",
+      "actual": "parcel_scam",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 16,
+      "language": "hi",
+      "expected": "utility_disconnection",
+      "actual": "utility_disconnection",
+      "correct": true,
+      "score": 40,
+      "verdict": "Suspicious",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 17,
+      "language": "hi",
+      "expected": "kyc_phishing",
+      "actual": "kyc_phishing",
+      "correct": true,
+      "score": 40,
+      "verdict": "Suspicious",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 18,
+      "language": "hi",
+      "expected": "digital_arrest",
+      "actual": "digital_arrest",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 19,
+      "language": "hi",
+      "expected": "parcel_scam",
+      "actual": "parcel_scam",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 20,
+      "language": "hi",
+      "expected": "investment_fraud",
+      "actual": "investment_fraud",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 21,
+      "language": "mr",
+      "expected": "utility_disconnection",
+      "actual": "utility_disconnection",
+      "correct": true,
+      "score": 40,
+      "verdict": "Suspicious",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 22,
+      "language": "mr",
+      "expected": "job_task_scam",
+      "actual": "job_task_scam",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 23,
+      "language": "mr",
+      "expected": "digital_arrest",
+      "actual": "digital_arrest",
+      "correct": true,
+      "score": 10,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 24,
+      "language": "mr",
+      "expected": "upi_refund",
+      "actual": "upi_refund",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    },
+    {
+      "id": 25,
+      "language": "mr",
+      "expected": "loan_fraud",
+      "actual": "loan_fraud",
+      "correct": true,
+      "score": 0,
+      "verdict": "Unverified",
+      "tool_events": 4,
+      "failed_tools": 0,
+      "unverified_findings": 0
+    }
+  ],
+  "limitations": [
+    "No real-world classification accuracy claim",
+    "OCR and configured AI calls not evaluated",
+    "Reserved domains skip registry lookup",
+    "Tool completion does not establish verification"
+  ]
+}

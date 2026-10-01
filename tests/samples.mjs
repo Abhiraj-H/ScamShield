@@ -1,0 +1,28 @@
+// Synthetic fixture set, authored for functional regression. Not a real-world accuracy dataset.
+export default [
+ ['en','utility_disconnection','MSEDCL electricity connection will be disconnected tonight. Send OTP to 9876543210.'],
+ ['en','kyc_phishing','SBI KYC expires. Update your account by sharing your PIN now.'],
+ ['en','digital_arrest','Police CBI digital arrest: pay now to avoid arrest.'],
+ ['en','parcel_scam','India Post parcel delivery failed. Pay redelivery fee at https://indiapost-delivery.example.'],
+ ['en','investment_fraud','Investment trading opportunity: guaranteed returns. Send money immediately.'],
+ ['en','job_task_scam','Part-time job on Telegram. Complete tasks and pay a deposit.'],
+ ['en','upi_refund','Refund Rs 5000: enter UPI PIN to receive money.'],
+ ['en','loan_fraud','Your loan is approved. Pay a processing fee today.'],
+ ['en','lottery_fraud','You are our lottery winner! Pay a claim fee.'],
+ ['en','remote_access','Install AnyDesk and provide your OTP for support.'],
+ ['en','family_impersonation','This is my new number. Your son needs money urgently.'],
+ ['en','other','Hi, shall we meet for dinner tomorrow?'],
+ ['en','other','Never share your OTP, PIN or password.'],
+ ['en','kyc_phishing','Account will be blocked. Complete KYC now.'],
+ ['en','parcel_scam','Your courier parcel delivery requires a small payment.'],
+ ['hi','utility_disconnection','महावितरण: बिजली कनेक्शन आज रात बंद होगा। OTP साझा करें।'],
+ ['hi','kyc_phishing','SBI केवाईसी समाप्त हो रही है। आपका खाता बंद होगा। पिन साझा करें।'],
+ ['hi','digital_arrest','पुलिस ने कहा आप गिरफ्तार होंगे। तुरंत भुगतान करें।'],
+ ['hi','parcel_scam','भारतीय डाक: आपका पार्सल रोक दिया गया है। शुल्क दें।'],
+ ['hi','investment_fraud','निवेश में गारंटीड रिटर्न मिलेगा। अभी पैसे भेजें।'],
+ ['mr','utility_disconnection','महावितरण: वीज कनेक्शन दोन तासात बंद होईल. OTP पाठवा.'],
+ ['mr','job_task_scam','घरबसल्या नोकरी मिळवा. काम सुरू करण्यासाठी पैसे पाठवा.'],
+ ['mr','digital_arrest','तुम्हाला अटक होईल. ताबडतोब पैसे द्या.'],
+ ['mr','upi_refund','परतावा मिळवण्यासाठी UPI पिन टाका.'],
+ ['mr','loan_fraud','तुमचे कर्ज मंजूर झाले आहे. आधी शुल्क भरा.']
+].map(([lang,type,text],i)=>({id:i+1,lang,type,text}));

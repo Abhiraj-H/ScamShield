@@ -1,0 +1,120 @@
+{
+  "generated_at": "2026-10-01T07:15:50.878Z",
+  "dataset": "Synthetic rendered screenshot fixtures; does not evaluate real screenshot quality",
+  "samples": 11,
+  "by_language": {
+    "en": {
+      "correct": 1,
+      "total": 1
+    },
+    "hi": {
+      "correct": 5,
+      "total": 5
+    },
+    "mr": {
+      "correct": 5,
+      "total": 5
+    }
+  },
+  "results": [
+    {
+      "id": 1,
+      "lang": "en",
+      "expected": "utility_disconnection",
+      "detected": "utility_disconnection",
+      "correct": true,
+      "ocr_confidence": 95,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nMSEDCL electricity connection will be disconnected tonight. Send OTP\nto 9876543210.\n"
+    },
+    {
+      "id": 16,
+      "lang": "hi",
+      "expected": "utility_disconnection",
+      "detected": "utility_disconnection",
+      "correct": true,
+      "ocr_confidence": 89,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nमहावितरण: बिजली कनेक्शन आज रात बंद होगा। OTP साझा Hel\n"
+    },
+    {
+      "id": 17,
+      "lang": "hi",
+      "expected": "kyc_phishing",
+      "detected": "kyc_phishing",
+      "correct": true,
+      "ocr_confidence": 92,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nSBI केवाईसी समापूत हो रही है। आपका खाता बंद होगा। पनि साझा करें।\n"
+    },
+    {
+      "id": 18,
+      "lang": "hi",
+      "expected": "digital_arrest",
+      "detected": "digital_arrest",
+      "correct": true,
+      "ocr_confidence": 94,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nपुलिस ने कहा आप गिरफ्तार होंगे। तुरंत भुगतान करें।\n"
+    },
+    {
+      "id": 19,
+      "lang": "hi",
+      "expected": "parcel_scam",
+      "detected": "parcel_scam",
+      "correct": true,
+      "ocr_confidence": 92,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nभारतीय डाक: आपका पार्सल रोक दिया गया है। शुल्क FI\n"
+    },
+    {
+      "id": 20,
+      "lang": "hi",
+      "expected": "investment_fraud",
+      "detected": "investment_fraud",
+      "correct": true,
+      "ocr_confidence": 93,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nनिवेश में गारंटीड रिटर्न मिलेगा। अभी पैसे भेजें।\n"
+    },
+    {
+      "id": 21,
+      "lang": "mr",
+      "expected": "utility_disconnection",
+      "detected": "utility_disconnection",
+      "correct": true,
+      "ocr_confidence": 94,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nमहावितरण: वीज कनेक्शन दोन तासात बंद होईल. OTP पाठवा.\n"
+    },
+    {
+      "id": 22,
+      "lang": "mr",
+      "expected": "job_task_scam",
+      "detected": "job_task_scam",
+      "correct": true,
+      "ocr_confidence": 95,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nघरबसल्या नोकरी मिळवा. काम सुरू करण्यासाठी पैसे पाठवा.\n"
+    },
+    {
+      "id": 23,
+      "lang": "mr",
+      "expected": "digital_arrest",
+      "detected": "digital_arrest",
+      "correct": true,
+      "ocr_confidence": 95,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nतुम्हाला अटक होईल. ताबडतोब पैसे द्या.\n"
+    },
+    {
+      "id": 24,
+      "lang": "mr",
+      "expected": "upi_refund",
+      "detected": "upi_refund",
+      "correct": true,
+      "ocr_confidence": 95,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nपरतावा मिळवण्यासाठी UPI पिन टाका.\n"
+    },
+    {
+      "id": 25,
+      "lang": "mr",
+      "expected": "loan_fraud",
+      "detected": "loan_fraud",
+      "correct": true,
+      "ocr_confidence": 95,
+      "text": "SYNTHETIC SCAM MESSAGE - FOR TESTING ONLY\nतुमचे कर्ज मंजूर झाले आहे. आधी शुल्क भरा.\n"
+    }
+  ]
+}

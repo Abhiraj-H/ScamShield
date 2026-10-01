@@ -1,0 +1,12 @@
+node_modules
+.venv
+.git
+.env
+.env.*
+.dev.vars
+.sites-runtime
+.wrangler
+.next
+dist
+output
+*.sqlite3*

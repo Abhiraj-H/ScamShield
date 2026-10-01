@@ -1,0 +1,59 @@
+# Replace runtime.image with your OWN publicly pullable, built image before submission.
+# Verified against https://aikart.co/docs/aikart-agent-manifest-guide.pdf (v1 draft).
+apiVersion: aikart.dev/v1
+kind: AgentManifest
+metadata:
+  name: scamshield-bharat
+  displayName: ScamShield
+  description: "Evidence-led scam triage and prepared recovery drafts for Indian families."
+runtime:
+  type: docker
+  image: "docker.io/REPLACE_WITH_YOUR_ACCOUNT/scamshield:1.0.0"
+  command: ["node", "backend/aikart_run.mjs"]
+resources:
+  cpu: 1
+  memoryMb: 1024
+  timeoutSeconds: 120
+inputs:
+  - name: text
+    label: "Suspicious message, URL, UPI ID or phone (do not enter OTPs)"
+    type: textarea
+    required: true
+  - name: lang
+    label: "Language"
+    type: select
+    options: [en, hi, mr]
+    default: en
+    required: false
+  - name: clicked
+    label: "Did you click a link?"
+    type: boolean
+    default: false
+    required: false
+  - name: shared
+    label: "Did you share credentials or details?"
+    type: boolean
+    default: false
+    required: false
+  - name: paid
+    label: "Did you send money?"
+    type: boolean
+    default: false
+    required: false
+  - name: amount
+    label: "Amount sent (INR)"
+    type: number
+    default: 0
+    required: false
+output:
+  format: json
+security:
+  networkEgress: allowlist
+  egressAllowlist:
+    - api.openai.com
+    - rdap.org
+    - rdap.verisign.com
+    - rdap.publicinterestregistry.org
+    - rdap.identitydigital.services
+    - safebrowsing.googleapis.com
+# Registry referrals outside this allow-list are unverified; partial results still return.
