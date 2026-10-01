@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Literal
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import Response, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 from backend.security import principal, owner_id, authenticate, authorize, rate_limit, append_audit, append_audit_in_transaction, audit_key, verify_audit, secret
 
@@ -53,15 +54,27 @@ async def guard(request: Request, call_next):
     context = None
     user = None
     path = request.url.path
+    public_demo = os.getenv('SCAMSHIELD_PUBLIC_DEMO') == '1'
+    asset = public_demo and request.method in ('GET', 'HEAD') and (path == '/' or path.startswith(('/assets/', '/ocr/')))
+    public_analysis = public_demo and path == '/analyze' and request.method == 'POST'
     # Route templates keep customer identifiers out of operational logs.
     route = '/cases/:id/' + path.split('/')[3] if path.startswith('/cases/') and len(path.split('/')) > 3 else '/cases/:id' if path.startswith('/cases/') else path
     try:
-        if path != '/health':
+        if path != '/health' and not asset:
             # Do not trust X-Forwarded-For. Let a trusted edge enforce its own IP quota.
             peer = request.client.host if request.client else 'unknown'
             rate_limit(connect, 'edge:' + hashlib.sha256(peer.encode()).hexdigest(), 120)
-            user = authenticate(request)
-            authorize(user, request.method, path)
+            if public_analysis:
+                user = {'id': 'public-demo', 'roles': [], 'mode': 'stateless-demo'}
+                # Global quota bounds spend even when reverse proxies share one peer.
+                rate_limit(connect, 'demo:global', 20)
+                rate_limit(connect, 'demo:daily', 200, seconds=86400)
+                rate_limit(connect, 'demo:peer:' + hashlib.sha256(peer.encode()).hexdigest(), 6)
+                if request.headers.get('content-type', '').split(';')[0] != 'application/json':
+                    raise HTTPException(415, 'JSON required')
+            else:
+                user = authenticate(request)
+                authorize(user, request.method, path)
             audit_key()  # fail closed before any application action
             context = principal.set(user)
             rate_limit(connect, 'user:' + user['id'], int(os.getenv('SCAMSHIELD_RATE_LIMIT', '60')))
@@ -69,6 +82,8 @@ async def guard(request: Request, call_next):
                 rate_limit(connect, 'write:' + user['id'], int(os.getenv('SCAMSHIELD_WRITE_LIMIT', '12')))
             origin = request.headers.get('origin')
             allowed = set(filter(None, os.getenv('SCAMSHIELD_ALLOWED_ORIGINS', '').split(',')))
+            if public_analysis:
+                allowed.add(str(request.base_url).rstrip('/'))
             if origin and origin not in allowed:
                 raise HTTPException(403, 'Origin is not allowed')
             if request.headers.get('sec-fetch-site') == 'cross-site':
@@ -88,7 +103,7 @@ async def guard(request: Request, call_next):
     except Exception:
         response = Response(json.dumps({'error': 'Service unavailable', 'request_id': request_id}), status_code=503, media_type='application/json')
     try:
-        if path != '/health':
+        if path != '/health' and not asset:
             event = {'request_id': request_id, 'time': datetime.now(timezone.utc).isoformat(), 'actor': user['id'] if user else 'unauthenticated', 'method': request.method, 'route': route, 'status': response.status_code, 'duration_ms': round((time.monotonic()-started)*1000)}
             digest = append_audit(connect, event)
             logger.info(json.dumps({**event, 'audit_digest': digest, 'duration_ms': round((time.monotonic()-started)*1000)}))
@@ -141,7 +156,7 @@ def intel_map():
 async def bridge_events(payload):
     node=shutil.which('node')
     if not node: raise HTTPException(503,'Node.js 22+ is required for the shared engine.')
-    process=await asyncio.create_subprocess_exec(node,str(ROOT/'backend/bridge.mjs'),cwd=str(ROOT),stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.DEVNULL,limit=12_000_000,env={**os.environ, **{k:secret(k) for k in ['OPENAI_API_KEY','GOOGLE_SAFE_BROWSING_API_KEY']}})
+    process=await asyncio.create_subprocess_exec(node,str(ROOT/'backend/bridge.mjs'),cwd=str(ROOT),stdin=asyncio.subprocess.PIPE,stdout=asyncio.subprocess.PIPE,stderr=asyncio.subprocess.DEVNULL,limit=12_000_000,env={**os.environ, **{k:secret(k) for k in ['OPENAI_API_KEY','GEMINI_API_KEY','GOOGLE_SAFE_BROWSING_API_KEY']}})
     process.stdin.write(json.dumps(payload).encode());await process.stdin.drain();process.stdin.close()
     try:
         async with asyncio.timeout(90):
@@ -166,11 +181,24 @@ async def bridge(payload):
 
 @app.get('/health')
 def health():
-    return {'status':'ok','version':'1.0.0','mode':'AI-assisted' if os.getenv('OPENAI_API_KEY') else 'rules','vision':bool(os.getenv('OPENAI_API_KEY')),'safe_browsing':bool(os.getenv('GOOGLE_SAFE_BROWSING_API_KEY'))}
+    provider=os.getenv('LLM_PROVIDER') or ('gemini' if secret('GEMINI_API_KEY') else 'openai' if secret('OPENAI_API_KEY') else 'none')
+    configured=provider in ('gemini','openai') and bool(secret('GEMINI_API_KEY' if provider=='gemini' else 'OPENAI_API_KEY'))
+    return {'status':'ok','version':'1.2.0','mode':'AI-assisted' if configured else 'rules','provider':provider if configured else None,'vision':configured,'safe_browsing':bool(secret('GOOGLE_SAFE_BROWSING_API_KEY')),'public_demo':os.getenv('SCAMSHIELD_PUBLIC_DEMO')=='1'}
 
 @app.post('/analyze')
-async def analyze_single(input: Intake):
-    return await bridge({'input':input.model_dump(exclude_none=True)})
+async def analyze_single(input: Intake, request: Request):
+    if os.getenv('SCAMSHIELD_PUBLIC_DEMO') == '1' and (input.image or len(input.text)>4000):
+        raise HTTPException(422, 'Public demo accepts up to 4,000 text characters; extract screenshot text on your device.')
+    payload={'input':input.model_dump(exclude_none=True)}
+    if 'text/event-stream' in request.headers.get('accept',''):
+        async def stream():
+            try:
+                async for event in bridge_events(payload):
+                    yield f"event: {event['event']}\ndata: {json.dumps(event['data'],ensure_ascii=False)}\n\n"
+            except Exception:
+                yield 'event: error\ndata: {"error":"Analysis interrupted. Retry later."}\n\n'
+        return StreamingResponse(stream(), media_type='text/event-stream')
+    return await bridge(payload)
 
 @app.post('/cases')
 async def create_case(input: Intake, request: Request):
@@ -275,3 +303,7 @@ def metrics():
     lines=['# HELP scamshield_requests_total Audited API requests by response status','# TYPE scamshield_requests_total counter']
     lines += ['scamshield_requests_total{status="'+str(status)+'"} '+str(count) for status,count in rows]
     return Response('\n'.join(lines)+'\n',media_type='text/plain')
+
+# One same-origin service serves the optional judge demo. Private APIs above retain OIDC.
+if (ROOT/'dist-demo').is_dir():
+    app.mount('/', StaticFiles(directory=ROOT/'dist-demo', html=True), name='demo')

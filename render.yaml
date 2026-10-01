@@ -1,0 +1,31 @@
+# Import this Blueprint only from a reviewed Git commit. Automatic deployment is off.
+services:
+  - type: web
+    name: scamshield-bharat-demo
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    region: singapore
+    autoDeployTrigger: off
+    healthCheckPath: /health
+    envVars:
+      - key: SCAMSHIELD_PUBLIC_DEMO
+        value: '1'
+      - key: SCAMSHIELD_DEV_AUTH
+        value: '0'
+      - key: SCAMSHIELD_DB
+        value: /app/storage/scamshield.sqlite3
+      - key: SCAMSHIELD_AUDIT_KEY
+        generateValue: true
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: GOOGLE_SAFE_BROWSING_API_KEY
+        sync: false
+    disk:
+      name: audit-and-quotas
+      mountPath: /app/storage
+      sizeGB: 1

@@ -1,22 +1,33 @@
-# 2-minute demonstration
+# ScamShield demonstration
 
-1. Open ScamShield. Briefly introduce a parent receiving an electricity-disconnection message.
-2. Click **Electricity bill**. Identify it as a synthetic example. Or upload `public/demo-electricity.png`; text is extracted on-device. Review it before checking.
-3. Click **Check for scam signals**. Open **Agent trace** to show the actual plan, parallel tools and deterministic score. Open **Evidence** to show the reserved demo domain, brand mismatch, request for remote access and explicit unavailable checks. Never say this fake domain has a real registration age or a real threat-list match.
-4. Set **I sent money**, amount ₹5,000, bank SBI, and click **Update recovery steps**. Show that 1930 and the bank move to the top; no export is needed before calling.
-5. Open **Review drafts**. Review the complaint and bank letter, and explain the liability caveat. Select Hindi or Marathi **before a new check** for a localized family alert and checklist.
-6. Click **Approve drafts & unlock downloads**. Download the PDF and calendar. Approval sends nothing and the calendar only creates reminders after import.
-7. Open **Your cases** and reopen the saved result.
+The local demo uses the user's Gemini key. Start it with `npm run build:demo` followed by `.venv/bin/python scripts/run-public-demo.py`, then open http://127.0.0.1:8000. Use synthetic or anonymized text. Keep keys in ignored server settings.
 
-## Measured statement
+## Walkthrough
 
-Use the exact current `docs/evaluation.json` values: 25/25 authored synthetic taxonomy fixtures matched; this is regression coverage, not real-world accuracy. Median rules-only analysis + Hindi PDF generation on this machine was approximately 0.97 seconds over five measured runs. These runs skip live AI/threat services and use reserved demo domains. A browser screenshot extraction run is a different operation and should not use this latency claim.
+1. Select Hindi and paste this **synthetic** example: `SBI KYC बंद हो जाएगी। OTP तुरंत भेजें। merchant@ybl पर भुगतान करें।`. It contains an instruction to share an OTP, not an actual OTP value.
+2. Check the message, then open **Agent trace**. Show the model-requested `check_upi`, its observation and the completed loop. These are actual events, not a hidden reasoning transcript. UPI syntax cannot establish account ownership.
+3. Show the **Suspicious** verdict and score 40. Explain that evidence determines the score. It is not a probability and Unverified never means safe.
+4. Simulate **I sent money**, ₹5,000, SBI, then update recovery steps. Show that 1930 and the bank take priority. This is a demonstration scenario, not a verified loss or recovered payment.
+5. Review and edit the family warning and complaint. Approval unlocks downloads and sends nothing to a bank, family member or government portal.
+6. Download the Hindi evidence PDF and reminder calendar. The tested PDF contains eight pages and redacted identifiers. The calendar contains three reminders, which require user import.
+7. Finish with the sourced evaluation limitation and deployment status. The standalone public demo intentionally has no saved-case history.
 
-Read `docs/ocr-evaluation.json` separately for screenshot-fixture results. Do not present text classification results as OCR accuracy. No manual time baseline was measured.
+## Existing evidence
 
-## Submission checklist
+- `output/demo/gemini-new-key-attempt.json` and `gemini-connection-status.json`: successful live local Gemini call and completed tool loop.
+- `output/demo/hindi-browser-proof.txt` and `hindi-trace-focused.jpg`: actual Hindi browser result and call `call_247334`.
+- `output/demo/hindi-evidence-pack.pdf` and `hindi-follow-up.ics`: actual browser downloads for the simulated ₹5,000/SBI flow.
+- `output/demo/ScamShield-demo-walkthrough.mp4`: edited narration over actual local app captures. It is a walkthrough, not a continuous screen recording or a publicly deployed session.
+- `output/presentation/final/ScamShield-pitch-v2.pptx`: five editable slides with the sourced evaluation and release dependencies.
 
-- Publish your built Docker image, replace `runtime.image` in the YAML template, and test the sandbox file contract inside the real container.
-- Or host FastAPI on your chosen public service and verify its `/analyze` endpoint from another network.
-- Add optional AI credentials to demonstrate native tool calls, then make a fresh live measurement. No keys are required for the on-device OCR and rules flow.
-- Record your own demo and submit the official Google Form yourself. The supplied PDF’s submission window says 8–10 PM IST on 1 Oct 2026, with development ending at 9 PM; confirm any organiser updates.
+## Claims to keep separate
+
+The five sourced excerpts matched categories 5/5 but generated warning verdicts 0/5. Their median live analysis time was 1.16 seconds, excluding OCR and PDF creation. The earlier synthetic UPI connection check took 24.30 seconds with the full agent loop. The small selected set cannot support general accuracy claims. See [SOURCED-EVALUATION.md](SOURCED-EVALUATION.md).
+
+The older 25/25 authored taxonomy cases and screenshot fixtures are local regressions, not real-world accuracy. The Hindi browser example and ₹5,000 loss are synthetic. No manual time baseline, recovery rate or official competition score was measured.
+
+## Deployment and submission
+
+The existing owner-private Site serves an earlier version. The updated source needs a connected review repository, required CI, independent review and host configuration before public release. The Render Blueprint uses paid persistent storage, so hosting cost needs a decision even with a free-tier Gemini key. A container definition exists, but Docker execution is unverified.
+
+After deployment, repeat the live Gemini check against the actual HTTPS `/analyze` URL from another network and keep that evidence separate from local runs. Verify the hackathon's current endpoint/manifest requirements. The user submits the final form and artifacts.

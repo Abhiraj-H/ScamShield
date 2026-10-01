@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "test": "node --test tests/*.test.mjs",
     "security": ".venv/bin/python scripts/security_gate.py",
-    "hooks:install": "git config core.hooksPath .githooks"
+    "hooks:install": "git config core.hooksPath .githooks",
+    "build:demo": "vite build --config vite.demo.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

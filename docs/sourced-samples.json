@@ -1,0 +1,73 @@
+{
+  "purpose": "Small historical source-reported scam-text evaluation, with annotations frozen before the first run. This is not a representative accuracy benchmark.",
+  "prepared_at": "2026-10-01",
+  "samples": [
+    {
+      "id": "electricity-i4c",
+      "title": "Electricity disconnection",
+      "text": "Your Electricity Power will be disconnected tonight at 9:30 pm because your previous month bill was not updated.",
+      "lang": "en",
+      "expected_type": "utility_disconnection",
+      "expected_entities": [],
+      "source": "https://cybercrime.gov.in/Webform/theme/resources/advisories/FakeSMSsrelatedtounpaidElectricityBilltodupecitizens.pdf",
+      "source_date": "2022-05-10",
+      "source_kind": "Official I4C advisory reproducing a campaign message",
+      "transformations": "18-word excerpt; contact clause omitted. The advisory's full message has a masked phone number, so there is no usable contact identifier in this input."
+    },
+    {
+      "id": "kbc-ibtimes",
+      "title": "KBC lottery",
+      "text": "This message is to inform you that your number has won a lottery of Rs 25 lakh from Kaun Banega Crorepati.",
+      "lang": "en",
+      "expected_type": "lottery_fraud",
+      "expected_entities": [],
+      "source": "https://www.ibtimes.co.in/fact-check-got-call-kbc-its-fake-phishing-attempt-ignore-flag-it-827478",
+      "source_date": null,
+      "source_kind": "Publisher's fact-check of a circulated Hindi WhatsApp message",
+      "transformations": "21-word excerpt from the publisher's English translation of Hindi. Contact clause omitted. This is not an original English message or an independent Hindi model test."
+    },
+    {
+      "id": "job-public-complaint",
+      "title": "Teaching job offer",
+      "text": "Respectedteachers you have passed our interview, can get 8000 Rs/Day. Please contact to discuss detail:https://wa.me/[PHONE_REDACTED] ThankingyouHeadMasterVREDUG",
+      "lang": "en",
+      "expected_type": "job_task_scam",
+      "expected_entities": [{"kind": "url", "canonical": "wa.me"}],
+      "source": "https://consumercomplaintscourt.com/part-time-job-fraud-15/",
+      "source_date": "2022-09-13",
+      "source_kind": "Firsthand self-report on an NGO complaint website; not a judicial finding",
+      "transformations": "Recipient's name and the complaint narrative are excluded; phone digits in the WhatsApp URL replaced with [PHONE_REDACTED]. Original unusual spacing retained. Evaluation checks host extraction only. The wa.me platform itself is not labelled malicious."
+    },
+    {
+      "id": "mtnl-police-report",
+      "title": "MTNL e-KYC suspension",
+      "text": "Dear customer your MTNL SIM Card Aadhaar e-KYC has been suspended. Your SIM card will be blocked immediately.",
+      "lang": "en",
+      "expected_type": "kyc_phishing",
+      "expected_entities": [],
+      "source": "https://timesofindia.indiatimes.com/gadgets-news/beware-delhi-police-has-warned-against-this-whatsapp-message/articleshow/93100301.cms",
+      "source_date": "2022-07-25",
+      "source_kind": "News reproduction of a Delhi Police warning and circulated message",
+      "transformations": "18-word text excerpt. No phone, address, signature or screenshot copied."
+    },
+    {
+      "id": "paytm-obfuscated-self-report",
+      "title": "Obfuscated wallet-expiry SMS",
+      "text": "Dear Customer Your PYA'T'M documen'ts has been Expire-d please contact customer care. [PHONE_REDACTED]. imme-diately Your PYA'T'M will be blo-cked within 24hrs.",
+      "lang": "en",
+      "expected_type": "kyc_phishing",
+      "expected_entities": [],
+      "source": "https://www.reddit.com/r/india/comments/i6dwy1/phonepe_scam/",
+      "source_date": null,
+      "source_kind": "Reddit user ilove27587's self-reported repeated SMS; not independently adjudicated",
+      "transformations": "Phone replaced with [PHONE_REDACTED]; obfuscated punctuation retained. The author describes repeated receipt, which provides a weak source label rather than confirmed victim loss."
+    }
+  ],
+  "synthetic_benign_controls": [
+    {"id":"benign-meeting","text":"Our project meeting is at 3 pm tomorrow. Please bring your notebook.","lang":"en"},
+    {"id":"benign-security-advice","text":"SBI safety advice: do not share your OTP or PIN with anyone.","lang":"en"},
+    {"id":"benign-electricity-reminder","text":"Your electricity bill is available in your official provider app. No payment link is included.","lang":"en"},
+    {"id":"benign-hi","text":"कल कॉलेज में प्रोजेक्ट की बैठक है। अपनी नोटबुक लेकर आएं।","lang":"hi"},
+    {"id":"benign-mr","text":"उद्या महाविद्यालयात प्रकल्पाची बैठक आहे. तुमची वही घेऊन या.","lang":"mr"}
+  ]
+}

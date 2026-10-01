@@ -1,4 +1,15 @@
 FROM node:22-bookworm-slim AS node-runtime
+FROM node-runtime AS demo-build
+WORKDIR /build
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
+COPY frontend ./frontend
+COPY app ./app
+COPY lib ./lib
+COPY data ./data
+COPY public ./public
+COPY vite.demo.config.ts postcss.config.mjs ./
+RUN npm run build:demo
 FROM python:3.12-slim-bookworm
 COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
 WORKDIR /app
@@ -12,6 +23,7 @@ RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r backend/r
 COPY lib /app/lib
 COPY data /app/data
 COPY backend /app/backend
+COPY --from=demo-build /build/dist-demo /app/dist-demo
 RUN useradd --create-home --uid 10001 scamshield && mkdir -p /aikart /app/storage && chown -R scamshield:scamshield /aikart /app/storage
 ENV SCAMSHIELD_DB=/app/storage/scamshield.sqlite3
 USER scamshield

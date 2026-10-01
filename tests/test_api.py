@@ -10,6 +10,8 @@ def client(tmp_path,monkeypatch):
     for name in ['OPENAI_API_KEY','OPENAI_API_KEY_FILE','GOOGLE_SAFE_BROWSING_API_KEY','GOOGLE_SAFE_BROWSING_API_KEY_FILE']:
         monkeypatch.delenv(name,raising=False)
     monkeypatch.delenv('SCAMSHIELD_API_KEY',raising=False)
+    for name in ['GEMINI_API_KEY','GEMINI_API_KEY_FILE','LLM_PROVIDER']:
+        monkeypatch.delenv(name,raising=False)
     from backend import main
     importlib.reload(main)
     with TestClient(main.app) as c:yield c

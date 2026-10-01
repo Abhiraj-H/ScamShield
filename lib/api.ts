@@ -1,3 +1,4 @@
+import {modelConfig} from './llm.mjs';
 import {env} from 'cloudflare:workers';
 import {analyze,refreshTriage,calendar,maskPII} from './engine.mjs';
 import {saveCase,getCase,listCases,lookupIntel,approveCase,deleteCase,quota,audit} from './store';
@@ -20,7 +21,7 @@ async function handle(req:Request,owner:string,requestId:string){
  const url=new URL(req.url);const parts=url.pathname.replace(/^\/api(?=\/)/,'').split('/').filter(Boolean);const [route,id,operation]=parts;
  const config=env as any;
  try {
-  if(route==='health')return json({status:'ok',version:'1.0.0',mode:config.OPENAI_API_KEY?'AI-assisted':'rules',storage:!!config.DB,vision:!!config.OPENAI_API_KEY,safe_browsing:!!config.GOOGLE_SAFE_BROWSING_API_KEY,limitations:['No filing or automatic contact','No guaranteed recovery','Redirect/TLS checks not performed']});
+  if(route==='health')return json({status:'ok',version:'1.0.0',mode:modelConfig(config)?'AI-assisted':'rules',provider:modelConfig(config)?.provider||null,storage:!!config.DB,vision:!!modelConfig(config),safe_browsing:!!config.GOOGLE_SAFE_BROWSING_API_KEY,limitations:['No filing or automatic contact','No guaranteed recovery','Redirect/TLS checks not performed']});
   if(route==='analyze'&&req.method==='POST'){return json(await analyze(validateInput(await payload(req)),config));}
   if(route==='cases'&&!id&&req.method==='GET')return json({cases:await listCases(owner)});
   if(route==='cases'&&!id&&req.method==='POST'){

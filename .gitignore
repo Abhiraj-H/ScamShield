@@ -21,3 +21,6 @@ output/
 .security-venv/
 backups/
 .security/
+
+.DS_Store
+dist-demo/

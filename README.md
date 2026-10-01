@@ -4,7 +4,7 @@ A working scam triage and recovery preparation app for Indian families. Paste a 
 
 **Drafts only. The user submits, calls and shares. No automatic filing, freezing, contact, or guaranteed recovery.**
 
-See [the 14-point security checklist](docs/SECURITY-CHECKLIST.md) and [operations runbook](docs/RUNBOOK.md). Production authentication and auditing fail closed until configured. The security updates are local; publication is blocked pending repository/host configuration.
+See [the 14-point security checklist](docs/SECURITY-CHECKLIST.md) and [operations runbook](docs/RUNBOOK.md). Production authentication and auditing fail closed until configured. Native Gemini tool-calling is verified locally. The current updates await a reviewed repository and host configuration before publication.
 
 ## Quick start
 
@@ -47,12 +47,38 @@ curl http://127.0.0.1:8000/analyze \
 
 ### Optional AI and threat-list services
 
+Gemini setup: create a key at https://aistudio.google.com/api-keys, then add the following to the ignored `.dev.vars` file **without replacing its existing audit key**:
+
+```dotenv
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_key_here
+GEMINI_MODEL=gemini-3.5-flash-lite
+```
+
+Restart `npm run dev` for the Sites preview. For the stateless standalone demo, run `npm run build:demo` then `.venv/bin/python scripts/run-public-demo.py`; its launcher loads these settings from `.dev.vars`. Direct Uvicorn and Docker deployments use runtime environment variables or `GEMINI_API_KEY_FILE` instead. In Render, set the same three variables in the service Environment tab. The key remains server-side. The free tier depends on the Google project/model and its quota, not on a special kind of API key. Use a project showing **Free tier**, with no paid billing upgrade, to remain on free quota. Free-tier data can be used by Google to improve products, so evaluate with anonymized or synthetic messages.
+
+After restarting, `/api/health` (Sites) or `/health` (standalone) should show `provider: "gemini"` when configured. This is a configuration check, not proof of a successful provider call. Analyze a message containing a UPI handle; the trace must show an AI classifier and model-requested tool call. A quota failure is visible and returns to rules mode.
+
+
+- `GEMINI_API_KEY`: direct Gemini taxonomy classification and actual tool-calling loop; default `GEMINI_MODEL=gemini-3.5-flash-lite`.
+- `LLM_PROVIDER=gemini`: select Gemini explicitly; no silent switch to another provider.
 - `OPENAI_API_KEY`: constrained taxonomy classification plus a native tool-calling planner. Evidence scoring and explanations remain deterministic. Provider failure falls back to explicit rules mode.
 - `OPENAI_MODEL`: defaults to `gpt-4.1-mini`.
 - `GOOGLE_SAFE_BROWSING_API_KEY`: checks Google threat lists; only origin and path are sent, without query tokens.
-- Direct API `image` requests can use provider vision, but require `imageConsent: true` and a configured OpenAI key. The first vision call sees the image; redact it yourself before sending. All subsequent text processing masks sensitive number patterns. The browser UI uses local OCR instead.
+- Direct API `image` requests can use provider vision, but require `imageConsent: true` and a configured provider key. The first vision call sees the image; redact it yourself before sending. All subsequent text processing masks sensitive number patterns. The browser UI uses local OCR instead.
 
-Do not commit keys. Configure secrets separately in the host. The delivered private Site uses rules mode until keys are configured. Live AI, provider vision and Safe Browsing calls have **not been tested with credentials**.
+Do not commit keys. Configure secrets separately in the host. On 1 October 2026, an initial Gemini key returned a project-access denial and the app visibly fell back to rules. After the user replaced the key, **live Gemini classification and a model-selected `check_upi` call succeeded** with `gemini-3.5-flash-lite`; Gemini then reviewed the actual tool output and completed the loop. The redacted proof is in `output/demo/gemini-new-key-attempt.json`. This was a local API check, not a public deployment. Provider vision and Safe Browsing remain unverified with credentials. The existing private Site has not been updated with this configuration.
+
+### Stateless judge demo
+
+```bash
+npm run build:demo
+.venv/bin/python scripts/run-public-demo.py
+```
+
+Open http://127.0.0.1:8000. The launcher reads server-side Gemini settings from `.dev.vars`, creates a persistent ignored audit secret when needed, and disables development authentication. This explicit demo exposes only text analysis and the frontend. Saved-case and operations routes still require OIDC/MFA. Results stay in the browser tab; the browser creates approved downloads without persisting a case. Text requests are limited to 4,000 characters and subject to durable peer/global quotas. Use synthetic or anonymized messages with free-tier model services.
+
+`render.yaml` prepares a service with persistent quota/audit storage. Its Starter plan is paid and needs an explicit hosting budget decision. The current Git remote belongs to Sites; Render needs a connected GitHub/GitLab repository. No new public deployment or public `/analyze` URL has been verified.
 
 ## Agent workflow
 
@@ -174,6 +200,10 @@ node tests/evaluate-ocr.mjs
 
 Screenshot fixture rendering requires Poppler (`pdftoppm`) on the machine.
 
-Evaluation reports under `docs/` record actual local synthetic-fixture measurements and limitations. No real-world accuracy, official score or recovery-rate claim is made. Browser UI was exercised for intake, live result, A→C triage, approval and history at narrow and desktop widths. Hindi/Marathi PDFs were rendered and visually inspected. Configured external AI/threat APIs and Docker were not exercised.
+The current suite contains 56 local tests (29 JavaScript, 27 Python), including native Gemini transport, bounded tool calls, provider failure, access isolation and Hindi/Marathi credential-request word order. This count is functional regression coverage.
 
-See `docs/DEMO.md` for the demonstration and `docs/PITCH.md` for a five-slide pitch outline.
+[Sourced evaluation](docs/SOURCED-EVALUATION.md) records five historical excerpts tested through live Gemini locally: **5/5 category matches, 0/5 warning verdicts**. This exposes a scoring limitation and does not establish scam-detection accuracy. The saved run, frozen inputs and browser screenshots are under `output/evaluation/`. Authored text/OCR fixture measurements remain separate.
+
+The browser flow was exercised for Hindi intake, actual model tool-call trace, A→C triage, draft editing, approval, PDF and calendar downloads. The captured Hindi payment amount and message are synthetic. Live Gemini worked; provider vision, credentialed Safe Browsing, a real IdP, Docker execution and a new public deployment remain unverified.
+
+See [the demo walkthrough](docs/DEMO.md) and [five-slide pitch](docs/PITCH.md). Generated local artifacts are in `output/demo/` and `output/presentation/final/`; these are excluded from Git and unsigned.

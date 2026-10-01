@@ -18,6 +18,8 @@ def secured(tmp_path, monkeypatch):
     monkeypatch.setenv('OIDC_AUDIENCE', 'scamshield')
     monkeypatch.delenv('OPENAI_API_KEY', raising=False)
     monkeypatch.delenv('OPENAI_API_KEY_FILE', raising=False)
+    for name in ['GEMINI_API_KEY','GEMINI_API_KEY_FILE','LLM_PROVIDER']:
+        monkeypatch.delenv(name,raising=False)
     from backend import main, security
     importlib.reload(main)
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)

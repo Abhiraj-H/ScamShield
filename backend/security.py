@@ -90,7 +90,7 @@ def audit_key():
 def rate_limit(connect, bucket, limit, seconds=60):
     now = int(time.time())
     with connect() as con:
-        con.execute('DELETE FROM rate_limits WHERE window < ?', (now // seconds - 2,))
+        con.execute('DELETE FROM rate_limits WHERE bucket=? AND window < ?', (bucket, now // seconds - 2))
         row = con.execute('INSERT INTO rate_limits(bucket,window,count) VALUES(?,?,1) '
                           'ON CONFLICT(bucket,window) DO UPDATE SET count=count+1 RETURNING count',
                           (bucket, now // seconds)).fetchone()

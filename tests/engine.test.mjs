@@ -11,15 +11,25 @@ test('internal URLs are not fetched',async()=>{const original=globalThis.fetch;l
 test('official hostname match is exact, never a suffix trick',async()=>{const original=globalThis.fetch;globalThis.fetch=async()=>new Response('{}',{status:404});try{const r=await analyze({text:'SBI https://sbi.bank.in.evil.test'});assert.ok(!r.evidence.some(e=>e.weight===-40));assert.ok(r.evidence.some(e=>e.weight===20));}finally{globalThis.fetch=original;}});
 test('answer changes revoke approval and rebuild artifacts',async()=>{const initial=await analyze({text:DEMOS[1].text,lang:'hi'});initial.approved_at='approved';initial.status='approved';const r=refreshTriage(initial,{paid:true,amount:5000,bank:'SBI',utr:'1234 5678 9012'});assert.equal(r.branch,'C');assert.equal(r.approved_at,null);assert.equal(r.actions[0].href,'tel:1930');assert.ok(r.drafts.complaint.includes('5,000'));assert.ok(!JSON.stringify(r).includes('1234 5678 9012'));assert.ok(r.drafts.family.includes('सावधान'));});
 test('calendar has 24h, 72h and 7d real UTC dates',async()=>{const r=await analyze({text:'Test message'});const cal=calendar(r);assert.equal((cal.match(/BEGIN:VEVENT/g)||[]).length,3);assert.ok(cal.includes('VERSION:2.0'));for(const hours of [24,72,168]){const stamp=new Date(Date.parse(r.created_at)+hours*3600000).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');assert.ok(cal.includes('DTSTART:'+stamp));}});
-test('image without a configured provider fails explicitly',async()=>{await assert.rejects(()=>analyze({image:'data:image/png;base64,AA=='}),/OPENAI_API_KEY/);});
+test('image without a configured provider fails explicitly',async()=>{await assert.rejects(()=>analyze({image:'data:image/png;base64,AA=='}),/configured model key/);});
 test('UPI result is syntax-only, never ownership confirmation',async()=>{const r=await analyze({text:'merchant123@ybl'});assert.ok(r.evidence.some(e=>e.tool==='UPI parser'&&e.status==='unverified'));assert.equal(extract('merchant123@ybl').upis.length,1);});
 test('a non-brand domain does not become a lookalike because of a Devanagari alias',async()=>{const original=globalThis.fetch;globalThis.fetch=async()=>new Response('{}',{status:404});try{const r=await analyze({text:'MSEDCL बिजली भुगतान https://unrelated.test'});assert.ok(!r.evidence.some(e=>e.finding.includes('Brand-like spelling')));}finally{globalThis.fetch=original;}});
 test('do not wait is pressure, not a safety instruction',async()=>{const r=await analyze({text:'Do not wait, send your OTP immediately.'});assert.ok(r.evidence.some(e=>e.tool==='Credential safety'&&e.weight===30));});
+test('Hindi and Marathi credential requests work in both word orders without flagging safety advice',async()=>{
+ for(const text of ['OTP तुरंत भेजें।','अपना OTP भेजें।','ओटीपी द्या.','तुमचा पिन टाका.']){
+  const r=await analyze({text});assert.ok(r.evidence.some(e=>e.tool==='Credential safety'&&e.weight===30),text);
+ }
+ for(const text of ['OTP कभी न भेजें।','OTP मत भेजें।','अपना OTP साझा न करें।','ओटीपी पाठवू नका.','पिन टाकू नका.']){
+  const r=await analyze({text});assert.ok(!r.evidence.some(e=>e.tool==='Credential safety'),text);
+ }
+ const mixed=await analyze({text:'OTP मत भेजें। फिर अपना PIN भेजें।'});
+ assert.ok(mixed.evidence.some(e=>e.tool==='Credential safety'&&e.weight===30));
+});
 test('BYO OpenAI calls go directly to the provider with redacted text and caller credentials',async()=>{
  const original=globalThis.fetch;const requests=[];const key=crypto.randomUUID();
  try{
-  globalThis.fetch=async(url,options)=>{requests.push({url:String(url),options});const body=JSON.parse(options.body);if(body.tools)return Response.json({choices:[{message:{tool_calls:[{function:{name:'check_patterns',arguments:'{}'}}]}}]});return Response.json({choices:[{message:{content:JSON.stringify({type:'kyc',tools:['patterns']})}}]});};
-  await analyze({text:'OTP is 123456. Send it now.'},{OPENAI_API_KEY:key,OPENAI_MODEL:'test-model'});
+  globalThis.fetch=async(url,options)=>{requests.push({url:String(url),options});const body=JSON.parse(options.body);if(body.tools)return Response.json({choices:[{message:{tool_calls:[{id:'call-upi',type:'function',function:{name:'check_upi',arguments:'{}'}}]}}]});return Response.json({choices:[{message:{content:JSON.stringify({type:'kyc',tools:['patterns']})}}]});};
+  await analyze({text:'OTP is 123456. Send it now. Pay victim@ybl.'},{OPENAI_API_KEY:key,OPENAI_MODEL:'test-model'});
   assert.ok(requests.length>=2);
   for(const r of requests){assert.equal(r.url,'https://api.openai.com/v1/chat/completions');assert.equal(r.options.headers.Authorization,'Bearer '+key);assert.ok(!r.options.body.includes('123456'));assert.equal(JSON.parse(r.options.body).model,'test-model');}
  }finally{globalThis.fetch=original;}
