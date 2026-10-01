@@ -15,3 +15,12 @@ test('image without a configured provider fails explicitly',async()=>{await asse
 test('UPI result is syntax-only, never ownership confirmation',async()=>{const r=await analyze({text:'merchant123@ybl'});assert.ok(r.evidence.some(e=>e.tool==='UPI parser'&&e.status==='unverified'));assert.equal(extract('merchant123@ybl').upis.length,1);});
 test('a non-brand domain does not become a lookalike because of a Devanagari alias',async()=>{const original=globalThis.fetch;globalThis.fetch=async()=>new Response('{}',{status:404});try{const r=await analyze({text:'MSEDCL बिजली भुगतान https://unrelated.test'});assert.ok(!r.evidence.some(e=>e.finding.includes('Brand-like spelling')));}finally{globalThis.fetch=original;}});
 test('do not wait is pressure, not a safety instruction',async()=>{const r=await analyze({text:'Do not wait, send your OTP immediately.'});assert.ok(r.evidence.some(e=>e.tool==='Credential safety'&&e.weight===30));});
+test('BYO OpenAI calls go directly to the provider with redacted text and caller credentials',async()=>{
+ const original=globalThis.fetch;const requests=[];const key=crypto.randomUUID();
+ try{
+  globalThis.fetch=async(url,options)=>{requests.push({url:String(url),options});const body=JSON.parse(options.body);if(body.tools)return Response.json({choices:[{message:{tool_calls:[{function:{name:'check_patterns',arguments:'{}'}}]}}]});return Response.json({choices:[{message:{content:JSON.stringify({type:'kyc',tools:['patterns']})}}]});};
+  await analyze({text:'OTP is 123456. Send it now.'},{OPENAI_API_KEY:key,OPENAI_MODEL:'test-model'});
+  assert.ok(requests.length>=2);
+  for(const r of requests){assert.equal(r.url,'https://api.openai.com/v1/chat/completions');assert.equal(r.options.headers.Authorization,'Bearer '+key);assert.ok(!r.options.body.includes('123456'));assert.equal(JSON.parse(r.options.body).model,'test-model');}
+ }finally{globalThis.fetch=original;}
+});

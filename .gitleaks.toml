@@ -1,0 +1,9 @@
+[extend]
+useDefault = true
+[allowlist]
+description = "Generated assets and ignored dependency/build directories; application source remains scanned."
+paths = [
+  '''(^|/)node_modules/''', '''(^|/)\.venv/''', '''(^|/)\.security-venv/''',
+  '''(^|/)\.security/''', '''(^|/)output/''', '''(^|/)dist/''', '''(^|/)\.wrangler/''',
+  '''(^|/)\.sites-runtime/''', '''(^|/)public/ocr/''', '''(^|/)lib/font-data\.mjs$'''
+]

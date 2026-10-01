@@ -14,3 +14,10 @@ output/
 *.tsbuildinfo
 
 .pytest_cache/
+
+.env.*
+!.env.example
+.vinext/
+.security-venv/
+backups/
+.security/

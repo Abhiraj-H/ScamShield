@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+# Otherwise staged code could differ from the code that the scanners tested.
+git diff --quiet || { echo 'Stage or revert every tracked change before security scanning.' >&2; exit 1; }
+exec .venv/bin/python scripts/security_gate.py

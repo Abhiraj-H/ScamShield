@@ -6,7 +6,9 @@ import pytest
 @pytest.fixture
 def client(tmp_path,monkeypatch):
     monkeypatch.setenv('SCAMSHIELD_DB',str(tmp_path/'test.sqlite3'))
-    monkeypatch.delenv('OPENAI_API_KEY',raising=False)
+    monkeypatch.setenv('SCAMSHIELD_DEV_AUTH','1')
+    for name in ['OPENAI_API_KEY','OPENAI_API_KEY_FILE','GOOGLE_SAFE_BROWSING_API_KEY','GOOGLE_SAFE_BROWSING_API_KEY_FILE']:
+        monkeypatch.delenv(name,raising=False)
     monkeypatch.delenv('SCAMSHIELD_API_KEY',raising=False)
     from backend import main
     importlib.reload(main)
@@ -37,9 +39,8 @@ def test_stateless_validation_and_key_guard(client,monkeypatch):
     assert client.post('/analyze',json={'text':'x','answers':{'amount':-1}}).status_code==422
     assert client.post('/analyze',json={'text':'x','lang':'fr'}).status_code==422
     assert client.get('/cases/missing').status_code==404
-    monkeypatch.setenv('SCAMSHIELD_API_KEY','test-only-key')
-    assert client.get('/cases').status_code==401
-    assert client.get('/cases',headers={'X-API-Key':'test-only-key'}).status_code==200
+    monkeypatch.delenv('SCAMSHIELD_DEV_AUTH')
+    assert client.get('/cases').status_code==503
     assert client.get('/health').status_code==200
 
 def test_live_sse_and_no_raw_identifier_storage(client):

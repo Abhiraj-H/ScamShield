@@ -1,0 +1,4 @@
+#!/bin/sh
+set -eu
+[ -z "$(git status --porcelain)" ] || { echo 'Push requires a clean, scanned commit.' >&2; exit 1; }
+exec .venv/bin/python scripts/security_gate.py

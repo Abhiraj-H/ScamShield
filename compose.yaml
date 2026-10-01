@@ -1,11 +1,33 @@
 services:
   scamshield-api:
     build: .
-    ports:
-      - "8000:8000"
-    env_file: .env
-    volumes:
-      - scamshield-data:/app/storage
+    ports: ["127.0.0.1:8000:8000"]
+    environment:
+      OIDC_ISSUER: ${OIDC_ISSUER:?Set your identity provider issuer}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:?Set the API audience}
+      OIDC_JWKS_URL: ${OIDC_JWKS_URL:?Set the HTTPS JWKS endpoint}
+      OIDC_ROLE_CLAIM: ${OIDC_ROLE_CLAIM:-roles}
+      OIDC_MFA_ACR: ${OIDC_MFA_ACR:-}
+      SCAMSHIELD_DEV_AUTH: "0"
+      SCAMSHIELD_AUDIT_KEY_FILE: /run/secrets/audit_key
+      OPENAI_API_KEY_FILE: /run/secrets/openai_key
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
+      SCAMSHIELD_DB: /app/storage/scamshield.sqlite3
+      SCAMSHIELD_ALLOWED_ORIGINS: ${SCAMSHIELD_ALLOWED_ORIGINS:-}
+    secrets: [audit_key, openai_key]
+    volumes: [scamshield-data:/app/storage]
     restart: unless-stopped
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+secrets:
+  audit_key:
+    file: ${SCAMSHIELD_AUDIT_KEY_SOURCE:?Point to a vault-provided secret file}
+  openai_key:
+    file: ${OPENAI_API_KEY_SOURCE:-/dev/null}
 volumes:
   scamshield-data:

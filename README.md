@@ -4,12 +4,16 @@ A working scam triage and recovery preparation app for Indian families. Paste a 
 
 **Drafts only. The user submits, calls and shares. No automatic filing, freezing, contact, or guaranteed recovery.**
 
+See [the 14-point security checklist](docs/SECURITY-CHECKLIST.md) and [operations runbook](docs/RUNBOOK.md). Production authentication and auditing fail closed until configured. The security updates are local; publication is blocked pending repository/host configuration.
+
 ## Quick start
 
 Requires Node.js 22.13+ and Python 3.12+. The web UI and FastAPI service use the **same JavaScript analysis engine**; they do not duplicate scoring logic.
 
 ```bash
 npm ci
+# Local preview requires a persistent, ignored .dev.vars audit secret.
+python3 -c 'import secrets; from pathlib import Path; p=Path(".dev.vars"); assert not p.exists(); p.write_text("SCAMSHIELD_AUDIT_KEY="+secrets.token_hex(32)+"\n"); p.chmod(0o600)'
 npm run dev
 ```
 
@@ -17,22 +21,23 @@ For a fresh local database, build and apply the generated migration **once**:
 
 ```bash
 npm run build
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_amused_quasar.sql
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 migrations apply DB --local --config dist/server/wrangler.json --persist-to .wrangler/state
 ```
 
 Open the Local URL printed by the server (normally http://127.0.0.1:5173). Start the server in a second terminal if it is not running. Preview state lives in `.wrangler/state`; publishing uses a separate D1 database. Do not replay already applied SQL.
 
-The app works without API keys. Screenshot OCR uses bundled English, Hindi and Marathi Tesseract language data **inside the browser**, with an editable text review before analysis. Initial extraction downloads local OCR assets and can take several seconds. Select the screenshot’s language before uploading. No screenshot is sent to an AI provider by the browser flow.
+Sign in through the local Sites sign-in page. Local mock sign-in is only for loopback development. The analysis engine works without model API keys; storage requires the audit secret. Screenshot OCR uses bundled English, Hindi and Marathi Tesseract language data **inside the browser**, with an editable text review before analysis. Initial extraction downloads local OCR assets and can take several seconds. Select the screenshot’s language before uploading. No screenshot is sent to an AI provider by the browser flow.
 
 ## Independently hosted API
 
 ```bash
 python3 -m venv .venv
-.venv/bin/pip install -r backend/requirements.txt
-.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000
+.venv/bin/pip install --require-hashes -r backend/requirements.lock
+# Explicit loopback-only development authentication:
+SCAMSHIELD_DEV_AUTH=1 .venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-API docs: http://127.0.0.1:8000/docs. The backend launches a bounded Node subprocess per operation; Node and the shared npm dependencies must be available. Case storage is SQLite. Optional settings are listed in `.env.example`. FastAPI reads process environment variables: use an environment loader or `export` settings before startup. For an Internet-facing API, set `SCAMSHIELD_API_KEY` and supply it in `X-API-Key`. The private Site has owner-only access and its own database, not the local API’s SQLite file.
+The API has no public Swagger/docs route. Production requires configured OIDC issuer/audience/HTTPS JWKS, an MFA claim and a user/reader/auditor role. Every protected request uses a short-lived bearer token; shared API-key authentication has been removed. Production also requires a vault-provided audit signing key. See `.env.example` and the security checklist. The local-development flag only permits loopback/TestClient access and must remain disabled in every deployed service. Node and the shared npm dependencies must be available. SQLite data is separate from hosted D1.
 
 ```bash
 curl http://127.0.0.1:8000/analyze \
@@ -114,7 +119,7 @@ The RBI 2017 rule is cited with its conditions. Zero liability is not promised f
 
 ## Endpoints
 
-The Site exposes the same routes, also available under `/api`:
+The Site exposes case routes under `/api` (and compatibility aliases). Standalone-only auditor routes are `/ops/readiness`, `/ops/metrics` and `/ops/audit`. Protected routes require identity and ownership:
 
 | Route | Purpose |
 |---|---|
@@ -138,7 +143,8 @@ The official v1 draft guide was checked: https://aikart.co/docs/aikart-agent-man
 
 ```bash
 docker build -t scamshield:1.0.0 .
-docker run --rm -p 8000:8000 --env-file .env scamshield:1.0.0
+# Set IdP parameters and vault-provided file paths, then:
+docker compose up --build
 ```
 
 `Dockerfile` packages the independently deployable FastAPI service and shared engine. The private cloud UI is deployed separately. Docker was unavailable in this workspace, so a real container build/run remains unverified. The local equivalent API and runner were tested.
@@ -159,6 +165,8 @@ node --test tests/engine.test.mjs
 .venv/bin/python -m pytest tests/test_api.py -q
 npx tsc --noEmit
 npm run build
+# After installing scanners and development tools:
+npm run security
 node tests/evaluate.mjs
 node tests/render-ocr-fixtures.mjs
 node tests/evaluate-ocr.mjs
