@@ -13,6 +13,6 @@ git(['init','-b',credential.branch]);git(['config','user.name','ScamShield Build
 try{git(['remote','get-url','origin']);git(['remote','set-url','origin',credential.remote_url]);}catch{git(['remote','add','origin',credential.remote_url]);}
 git(['add','.']);git(['commit','-m','Build ScamShield scam triage and recovery preparation app']);
 const remote=git(['ls-remote','--heads','origin',credential.branch],true);
-if(remote)throw new Error('Remote already has source; refusing to overwrite unrelated history.');
+if(remote){git(['fetch','origin',credential.branch],true);git(['merge-base','--is-ancestor','origin/'+credential.branch,'HEAD']);}
 git(['push','-u','origin',credential.branch],true);
 const commit_sha=git(['rev-parse','HEAD']);console.log(JSON.stringify({commit_sha,project_id:JSON.parse(await readFile('.openai/hosting.json','utf8')).project_id}));

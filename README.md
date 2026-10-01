@@ -160,7 +160,11 @@ node --test tests/engine.test.mjs
 npx tsc --noEmit
 npm run build
 node tests/evaluate.mjs
+node tests/render-ocr-fixtures.mjs
+node tests/evaluate-ocr.mjs
 ```
+
+Screenshot fixture rendering requires Poppler (`pdftoppm`) on the machine.
 
 Evaluation reports under `docs/` record actual local synthetic-fixture measurements and limitations. No real-world accuracy, official score or recovery-rate claim is made. Browser UI was exercised for intake, live result, A→C triage, approval and history at narrow and desktop widths. Hindi/Marathi PDFs were rendered and visually inspected. Configured external AI/threat APIs and Docker were not exercised.
 
