@@ -12,6 +12,8 @@ The local demo uses the user's Gemini key. Start it with `npm run build:demo` fo
 6. Download the Hindi evidence PDF and reminder calendar. The tested PDF contains eight pages and redacted identifiers. The calendar contains three reminders, which require user import.
 7. Finish with the sourced evaluation limitation and deployment status. The standalone public demo intentionally has no saved-case history.
 
+For a human recording, use [VIDEO-NARRATION.md](VIDEO-NARRATION.md). It matches the existing visuals and includes a clean video without the automated voice.
+
 ## Existing evidence
 
 - `output/demo/gemini-new-key-attempt.json` and `gemini-connection-status.json`: successful live local Gemini call and completed tool loop.
