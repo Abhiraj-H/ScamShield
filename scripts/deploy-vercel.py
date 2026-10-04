@@ -1,4 +1,4 @@
-"""Deploy only a clean, independently reviewed main revision with passing checks."""
+"""Deploy only a clean protected main revision satisfying release policy and CI."""
 import os
 import subprocess
 from pathlib import Path

@@ -1,4 +1,4 @@
-"""Verify exact-commit PR approval and successful GitHub CI before packaging a release."""
+"""Verify the tracked release policy, protected main and exact-commit GitHub CI."""
 import json
 import os
 import re
@@ -7,6 +7,14 @@ import sys
 import urllib.request
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+
+def release_policy():
+    path=ROOT/'.github/release-policy.json'
+    return json.loads(path.read_text()) if path.exists() else {'mode':'reviewed-pr'}
+
+def authenticated_actor():
+    request=urllib.request.Request('https://api.github.com/user',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','User-Agent':'scamshield-release-gate'})
+    with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
 
 def github(path):
     token=os.getenv('GH_TOKEN','')
@@ -22,22 +30,41 @@ def verify():
     branch=github('branches/main')
     if not branch['protected'] or branch['commit']['sha']!=sha:raise RuntimeError('Release must use the current protected main commit')
     protection=github('branches/main/protection')
-    reviews=protection.get('required_pull_request_reviews',{})
-    if reviews.get('required_approving_review_count',0)<1 or not reviews.get('dismiss_stale_reviews') or not protection.get('enforce_admins',{}).get('enabled'):
-        raise RuntimeError('Require human review, stale-review dismissal and administrator enforcement')
+    if not protection.get('enforce_admins',{}).get('enabled'):
+        raise RuntimeError('Administrator enforcement is required')
     contexts=protection.get('required_status_checks',{}).get('contexts',[])
     if 'security-gate' not in contexts:raise RuntimeError('security-gate must be a required branch check')
-    prs=github('commits/'+sha+'/pulls?per_page=100')
-    merged=[p for p in prs if p.get('merged_at') and p['base']['ref']=='main' and p.get('merge_commit_sha')==sha]
-    if not merged:raise RuntimeError('Commit must come from a merged pull request')
-    pr=merged[0]
-    responses=github('pulls/'+str(pr['number'])+'/reviews?per_page=100')
-    latest={}
-    for response in responses:
-        if response.get('state') in ('APPROVED','CHANGES_REQUESTED','DISMISSED'):
-            latest[response['user']['login']]=response
-    approvals=[r for user,r in latest.items() if user!=pr['user']['login'] and r['state']=='APPROVED' and r.get('commit_id')==pr['head']['sha'] and r['user']['type']=='User']
-    if not approvals or any(r['state']=='CHANGES_REQUESTED' for r in latest.values()):raise RuntimeError('Independent approval of the final PR revision is required')
+    policy=release_policy()
+    result={'validated_commit':sha,'release_policy':policy.get('mode')}
+    if policy.get('mode')=='sole-owner':
+        repo=github('')
+        actor=authenticated_actor()
+        if policy.get('repository')!=os.getenv('SCAMSHIELD_GITHUB_REPO') or repo.get('full_name')!=policy.get('repository'):
+            raise RuntimeError('Sole-owner policy is restricted to its named repository')
+        if repo.get('owner',{}).get('type')!='User' or repo['owner']['login']!=policy.get('owner') or actor.get('login')!=policy.get('owner') or actor.get('type')!='User' or not repo.get('permissions',{}).get('admin'):
+            raise RuntimeError('Only the authenticated repository owner may release directly')
+        if protection.get('allow_force_pushes',{}).get('enabled') or protection.get('allow_deletions',{}).get('enabled'):
+            raise RuntimeError('Force pushes and branch deletion must remain blocked')
+        if not protection['required_status_checks'].get('strict') or not any(c.get('context')=='security-gate' and c.get('app_id')==15368 for c in protection['required_status_checks'].get('checks',[])):
+            raise RuntimeError('Strict GitHub Actions security CI is required')
+        result['owner']=actor['login']
+    elif policy.get('mode')=='reviewed-pr':
+        reviews=protection.get('required_pull_request_reviews',{})
+        if reviews.get('required_approving_review_count',0)<1 or not reviews.get('dismiss_stale_reviews'):
+            raise RuntimeError('Require human review and stale-review dismissal')
+        prs=github('commits/'+sha+'/pulls?per_page=100')
+        merged=[p for p in prs if p.get('merged_at') and p['base']['ref']=='main' and p.get('merge_commit_sha')==sha]
+        if not merged:raise RuntimeError('Commit must come from a merged pull request')
+        pr=merged[0]
+        responses=github('pulls/'+str(pr['number'])+'/reviews?per_page=100')
+        latest={}
+        for response in responses:
+            if response.get('state') in ('APPROVED','CHANGES_REQUESTED','DISMISSED'):
+                latest[response['user']['login']]=response
+        approvals=[r for user,r in latest.items() if user!=pr['user']['login'] and r['state']=='APPROVED' and r.get('commit_id')==pr['head']['sha'] and r['user']['type']=='User']
+        if not approvals or any(r['state']=='CHANGES_REQUESTED' for r in latest.values()):raise RuntimeError('Independent approval of the final PR revision is required')
+        result['pull_request']=pr['html_url']
+    else:raise RuntimeError('Unknown release policy')
     checks=github('commits/'+sha+'/check-runs?per_page=100')['check_runs']
     latest_checks={}
     for check in checks:
@@ -46,7 +73,8 @@ def verify():
     for name in set(contexts)|{'security-gate'}:
         check=latest_checks.get(name)
         if not check or check['status']!='completed' or check['conclusion']!='success':raise RuntimeError('Required CI check is missing or failed: '+name)
-    print(json.dumps({'reviewed_commit':sha,'pull_request':pr['html_url'],'ci':'passed'}))
+        if policy['mode']=='sole-owner' and name=='security-gate' and check.get('app',{}).get('id')!=15368:raise RuntimeError('Security check must come from GitHub Actions')
+    print(json.dumps({**result,'ci':'passed'}))
 
 if __name__=='__main__':
     try:verify()

@@ -32,7 +32,7 @@ Check the issuer/JWKS service and key rotation. Cache lifetime is five minutes; 
 
 ## Dependency CVE or secret leak
 
-Block releases. Save the advisory ID and affected lockfile versions. Update dependencies, regenerate hashed Python locks if necessary, then run the full gate and the reviewed PR process. If a key leaked, revoke/rotate it at the provider/vault first and examine usage; deleting a Git file does not revoke a leaked key. Preserve redacted forensic metadata. Re-scan history and invalidate affected artifacts. Audit-key rotation needs a versioned keyring migration; keep old signing material securely for history verification.
+Block releases. Save the advisory ID and affected lockfile versions. Update dependencies, regenerate hashed Python locks if necessary, then run the full gate and the tracked release policy and exact-commit CI process. If a key leaked, revoke/rotate it at the provider/vault first and examine usage; deleting a Git file does not revoke a leaked key. Preserve redacted forensic metadata. Re-scan history and invalidate affected artifacts. Audit-key rotation needs a versioned keyring migration; keep old signing material securely for history verification.
 
 ## Abuse or model outage
 

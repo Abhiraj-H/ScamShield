@@ -71,7 +71,7 @@ def gate():
     if source_digest()!=initial:raise RuntimeError('Source changed during scanning; rerun checks')
     report={'passed':True,'time':datetime.now(timezone.utc).isoformat(),'source_sha256':initial,'base_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'checks':18,'signed':False}
     (OUT/'gate.json').write_text(json.dumps(report,indent=2)+'\n')
-    print('All checks passed. Release still requires a reviewed PR, CI and signed provenance.')
+    print('All checks passed. Deployment still requires protected main, exact-commit CI and the tracked release policy.')
 
 if __name__=='__main__':
     try:gate()

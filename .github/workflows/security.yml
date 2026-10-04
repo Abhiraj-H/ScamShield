@@ -2,7 +2,7 @@ name: Security and tests
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: ['**']
 permissions:
   contents: read
 concurrency:

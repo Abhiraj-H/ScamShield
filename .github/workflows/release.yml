@@ -1,10 +1,10 @@
-name: Reviewed release artifact
+name: Validated release artifact
 on:
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  reviewed-release:
+  validated-release:
     runs-on: ubuntu-latest
     environment: production
     timeout-minutes: 30
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
-      - name: Verify protected branch, final PR approval, and CI
+      - name: Verify protected main, release policy, and CI
         env:
           GH_TOKEN: ${{ secrets.RELEASE_POLICY_READ_TOKEN }}
           SCAMSHIELD_GITHUB_REPO: ${{ github.repository }}
@@ -40,21 +40,21 @@ jobs:
           .venv/bin/python -m pip install -r backend/requirements-dev.txt
           .venv/bin/python scripts/setup-security.py
           .venv/bin/python scripts/security_gate.py
-          git archive --format=tar.gz --output=output/ScamShield-reviewed-source.tar.gz HEAD
-          tar -czf output/ScamShield-web-build.tar.gz -C dist .
+          git archive --format=tar.gz --output=output/ScamShield-validated-source.tar.gz HEAD
+          tar -czf output/ScamShield-web-build.tar.gz -C dist-demo .
       - name: Sign source, web build, and SBOM provenance
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: |
-            output/ScamShield-reviewed-source.tar.gz
+            output/ScamShield-validated-source.tar.gz
             output/ScamShield-web-build.tar.gz
             output/security/*-sbom.cdx.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: reviewed-signed-release
+          name: validated-signed-release
           path: |
-            output/ScamShield-reviewed-source.tar.gz
+            output/ScamShield-validated-source.tar.gz
             output/ScamShield-web-build.tar.gz
             output/security/
-# A cloud deployment step can consume only this reviewed, signed artifact after
+# A cloud deployment step can consume only this validated, signed artifact after
 # verifying its attestation. Cloud credentials and region are owner configuration.

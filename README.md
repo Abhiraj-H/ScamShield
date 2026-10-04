@@ -70,7 +70,7 @@ npm run build:demo
 
 Open http://127.0.0.1:8000. The launcher reads server-side Gemini settings from `.dev.vars`, creates a persistent ignored audit secret when needed, and disables development authentication. This explicit demo exposes only text analysis and the frontend. Saved-case and operations routes still require OIDC/MFA. Results stay in the browser tab; the browser creates approved downloads without persisting a case. Text requests are limited to 4,000 characters and subject to durable peer/global quotas. Use synthetic or anonymized messages with free-tier model services.
 
-Vercel is the requested deployment target. See [Vercel deployment](docs/VERCEL-DEPLOYMENT.md) for the prepared frontend/functions, free-plan Redis integration and exact-main release gate. Public operation remains unverified until deployment and live checks complete. `render.yaml` remains an optional paid hosting alternative and has not been applied.
+Vercel is the requested deployment target. See [Vercel deployment](docs/VERCEL-DEPLOYMENT.md) for the prepared frontend/functions, free-plan Redis integration and the sole-owner, exact-main CI release gate. Public operation remains unverified until deployment and live checks complete. `render.yaml` remains an optional paid hosting alternative and has not been applied.
 
 ## Agent workflow
 
