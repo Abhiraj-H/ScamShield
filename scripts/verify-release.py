@@ -21,7 +21,7 @@ def github(path):
     if not token:raise RuntimeError('GH_TOKEN is required to verify repository policy')
     repo=os.getenv('SCAMSHIELD_GITHUB_REPO','')
     if not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+',repo):raise RuntimeError('SCAMSHIELD_GITHUB_REPO is required')
-    request=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','User-Agent':'scamshield-release-gate'})
+    request=urllib.request.Request('https://api.github.com/repos/'+repo+('/'+path if path else ''),headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json','User-Agent':'scamshield-release-gate'})
     with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
 
 def verify():

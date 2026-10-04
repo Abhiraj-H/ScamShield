@@ -1,9 +1,20 @@
 import importlib.util
+import io
 import subprocess
 from pathlib import Path
 import pytest
 ROOT=Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location('release_gate',ROOT/'scripts/verify-release.py');release=importlib.util.module_from_spec(spec);spec.loader.exec_module(release)
+
+@pytest.mark.parametrize('path',['','branches/main'])
+def test_repository_endpoint_uses_github_canonical_url(monkeypatch,path):
+    monkeypatch.setenv('GH_TOKEN','test-value')
+    monkeypatch.setenv('SCAMSHIELD_GITHUB_REPO','Abhiraj-H/ScamShield')
+    def response(request,**kwargs):
+        assert request.full_url=='https://api.github.com/repos/Abhiraj-H/ScamShield'+('/'+path if path else '')
+        return io.BytesIO(b'{}')
+    monkeypatch.setattr(release.urllib.request,'urlopen',response)
+    assert release.github(path)=={}
 
 def policies():
     return {'branches/main':{'protected':True,'commit':{'sha':'a'*40}},'branches/main/protection':{'required_pull_request_reviews':{'required_approving_review_count':1,'dismiss_stale_reviews':True},'enforce_admins':{'enabled':True},'required_status_checks':{'contexts':['security-gate']}},'commits/'+'a'*40+'/pulls?per_page=100':[{'number':1,'merged_at':'now','base':{'ref':'main'},'merge_commit_sha':'a'*40,'head':{'sha':'b'*40},'user':{'login':'author'},'html_url':'https://github.com/example/project/pull/1'}],'pulls/1/reviews?per_page=100':[{'state':'APPROVED','user':{'login':'reviewer','type':'User'},'commit_id':'b'*40}],'commits/'+'a'*40+'/check-runs?per_page=100':{'check_runs':[{'id':1,'name':'security-gate','status':'completed','conclusion':'success'}]}}
