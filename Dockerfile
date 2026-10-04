@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS node-runtime
+FROM node:24-bookworm-slim AS node-runtime
 FROM node-runtime AS demo-build
 WORKDIR /build
 COPY package.json package-lock.json ./

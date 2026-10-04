@@ -1,0 +1,25 @@
+flowchart TD
+ I[Text or reviewed browser OCR] --> M[PII masking and entity extraction]
+ M --> R[Gemini query embedding]
+ D[Six reviewed official guidance passages] --> V[Offline 768-dimensional document index]
+ R --> S[Cosine top-3 retrieval with citations]
+ V --> S
+ S --> C[Taxonomy classification and grounded passage selection]
+ C --> P[Bounded LLM tool planner]
+ P --> T[Allowed RDAP, threat-list, UPI and phone checks]
+ T --> O[Real outputs returned to the model]
+ O --> P
+ T --> E[Deterministic evidence score]
+ C --> G[Extractive guidance from selected retrieved passages]
+ E --> B{User situation}
+ B --> A[Prevention]
+ B --> X[Credential or device exposure]
+ B --> L[Money lost: 1930 and bank promptly]
+ G --> U[Result and source citations]
+ A --> U
+ X --> U
+ L --> U
+ U --> W[Edit drafts and approve]
+ W --> F[PDF and calendar download]
+ R -. unavailable .-> K[Explicit keyword fallback]
+ K --> C

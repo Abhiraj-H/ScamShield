@@ -4,29 +4,21 @@ A working scam triage and recovery preparation app for Indian families. Paste a 
 
 **Drafts only. The user submits, calls and shares. No automatic filing, freezing, contact, or guaranteed recovery.**
 
-See [the 14-point security checklist](docs/SECURITY-CHECKLIST.md) and [operations runbook](docs/RUNBOOK.md). Production authentication and auditing fail closed until configured. Native Gemini tool-calling is verified locally. The current updates await a reviewed repository and host configuration before publication.
+See [the 14-point security checklist](docs/SECURITY-CHECKLIST.md) and [operations runbook](docs/RUNBOOK.md). Production authentication and auditing fail closed until configured. Native Gemini tool-calling is verified locally. The prototype source is published at [Abhiraj-H/ScamShield](https://github.com/Abhiraj-H/ScamShield). The FA RAG and Vercel update is in this checkout; public runtime deployment remains unverified.
 
 ## Quick start
 
-Requires Node.js 22.13+ and Python 3.12+. The web UI and FastAPI service use the **same JavaScript analysis engine**; they do not duplicate scoring logic.
+Requires Node.js 24 and Python 3.12+. The web UI and FastAPI service use the **same JavaScript analysis engine**; they do not duplicate scoring logic.
 
 ```bash
-npm ci
-# Local preview requires a persistent, ignored .dev.vars audit secret.
-python3 -c 'import secrets; from pathlib import Path; p=Path(".dev.vars"); assert not p.exists(); p.write_text("SCAMSHIELD_AUDIT_KEY="+secrets.token_hex(32)+"\n"); p.chmod(0o600)'
-npm run dev
-```
-
-For a fresh local database, build and apply the generated migration **once**:
-
-```bash
+npm ci --ignore-scripts
 npm run build
-node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 migrations apply DB --local --config dist/server/wrangler.json --persist-to .wrangler/state
+.venv/bin/python scripts/run-public-demo.py
 ```
 
-Open the Local URL printed by the server (normally http://127.0.0.1:5173). Start the server in a second terminal if it is not running. Preview state lives in `.wrangler/state`; publishing uses a separate D1 database. Do not replay already applied SQL.
+Open http://127.0.0.1:8000 for the complete local rehearsal. The launcher loads ignored `.dev.vars` Gemini settings, creates a private audit signing key when needed, and disables development authentication. Run `npm run dev` in another terminal for frontend hot reload on port 5173; it proxies analysis to the local API on port 8000.
 
-Sign in through the local Sites sign-in page. Local mock sign-in is only for loopback development. The analysis engine works without model API keys; storage requires the audit secret. Screenshot OCR uses bundled English, Hindi and Marathi Tesseract language data **inside the browser**, with an editable text review before analysis. Initial extraction downloads local OCR assets and can take several seconds. Select the screenshot’s language before uploading. No screenshot is sent to an AI provider by the browser flow.
+The standalone React/Vite frontend is now the canonical build target. The unavailable Sites deployment and its vinext build adapter have been retired. Existing D1 adapter code and tests remain as reference, but the current build does not publish a Sites worker. Screenshot OCR uses bundled English, Hindi and Marathi Tesseract language data inside the browser, with editable text review before analysis. No screenshot is sent to a provider by this browser flow.
 
 ## Independently hosted API
 
@@ -55,9 +47,9 @@ GEMINI_API_KEY=your_key_here
 GEMINI_MODEL=gemini-3.5-flash-lite
 ```
 
-Restart `npm run dev` for the Sites preview. For the stateless standalone demo, run `npm run build:demo` then `.venv/bin/python scripts/run-public-demo.py`; its launcher loads these settings from `.dev.vars`. Direct Uvicorn and Docker deployments use runtime environment variables or `GEMINI_API_KEY_FILE` instead. In Render, set the same three variables in the service Environment tab. The key remains server-side. The free tier depends on the Google project/model and its quota, not on a special kind of API key. Use a project showing **Free tier**, with no paid billing upgrade, to remain on free quota. Free-tier data can be used by Google to improve products, so evaluate with anonymized or synthetic messages.
+Restart the standalone API after changing server settings. For the stateless standalone demo, run `npm run build:demo` then `.venv/bin/python scripts/run-public-demo.py`; its launcher loads these settings from `.dev.vars`. Direct Uvicorn and Docker deployments use runtime environment variables or `GEMINI_API_KEY_FILE` instead. In Vercel, configure these three variables as server environment variables. The key remains server-side. The free tier depends on the Google project/model and its quota, not on a special kind of API key. Use a project showing **Free tier**, with no paid billing upgrade, to remain on free quota. Free-tier data can be used by Google to improve products, so evaluate with anonymized or synthetic messages.
 
-After restarting, `/api/health` (Sites) or `/health` (standalone) should show `provider: "gemini"` when configured. This is a configuration check, not proof of a successful provider call. Analyze a message containing a UPI handle; the trace must show an AI classifier and model-requested tool call. A quota failure is visible and returns to rules mode.
+After restarting, `/health` (standalone or Vercel) should show `provider: "gemini"` when configured. This is a configuration check, not proof of a successful provider call. Analyze a message containing a UPI handle; the trace must show an AI classifier and model-requested tool call. A quota failure is visible and returns to rules mode.
 
 
 - `GEMINI_API_KEY`: direct Gemini taxonomy classification and actual tool-calling loop; default `GEMINI_MODEL=gemini-3.5-flash-lite`.
@@ -67,7 +59,7 @@ After restarting, `/api/health` (Sites) or `/health` (standalone) should show `p
 - `GOOGLE_SAFE_BROWSING_API_KEY`: checks Google threat lists; only origin and path are sent, without query tokens.
 - Direct API `image` requests can use provider vision, but require `imageConsent: true` and a configured provider key. The first vision call sees the image; redact it yourself before sending. All subsequent text processing masks sensitive number patterns. The browser UI uses local OCR instead.
 
-Do not commit keys. Configure secrets separately in the host. On 1 October 2026, an initial Gemini key returned a project-access denial and the app visibly fell back to rules. After the user replaced the key, **live Gemini classification and a model-selected `check_upi` call succeeded** with `gemini-3.5-flash-lite`; Gemini then reviewed the actual tool output and completed the loop. The redacted proof is in `output/demo/gemini-new-key-attempt.json`. This was a local API check, not a public deployment. Provider vision and Safe Browsing remain unverified with credentials. The existing private Site has not been updated with this configuration.
+Do not commit keys. Configure secrets separately in the host. On 1 October 2026, an initial Gemini key returned a project-access denial and the app visibly fell back to rules. After the user replaced the key, **live Gemini classification and a model-selected `check_upi` call succeeded** with `gemini-3.5-flash-lite`; Gemini then reviewed the actual tool output and completed the loop. The redacted proof is in `output/demo/gemini-new-key-attempt.json`. This was a local API check, not a public deployment. Provider vision and Safe Browsing remain unverified with credentials. The retired private Site has not been updated.
 
 ### Stateless judge demo
 
@@ -78,7 +70,7 @@ npm run build:demo
 
 Open http://127.0.0.1:8000. The launcher reads server-side Gemini settings from `.dev.vars`, creates a persistent ignored audit secret when needed, and disables development authentication. This explicit demo exposes only text analysis and the frontend. Saved-case and operations routes still require OIDC/MFA. Results stay in the browser tab; the browser creates approved downloads without persisting a case. Text requests are limited to 4,000 characters and subject to durable peer/global quotas. Use synthetic or anonymized messages with free-tier model services.
 
-`render.yaml` prepares a service with persistent quota/audit storage. Its Starter plan is paid and needs an explicit hosting budget decision. The current Git remote belongs to Sites; Render needs a connected GitHub/GitLab repository. No new public deployment or public `/analyze` URL has been verified.
+Vercel is the requested deployment target. See [Vercel deployment](docs/VERCEL-DEPLOYMENT.md) for the prepared frontend/functions, free-plan Redis integration and exact-main release gate. Public operation remains unverified until deployment and live checks complete. `render.yaml` remains an optional paid hosting alternative and has not been applied.
 
 ## Agent workflow
 
@@ -120,9 +112,9 @@ The capped indicator score is not a probability. Sum the following evidence weig
 
 **≥60: Scam; 30–59: Suspicious; <30: Unverified. Never Safe.** The mobile-contact heuristic is a sender mismatch approximation, not an ownership check. Each criterion applies once, except independent local indicator matches; evidence IDs show all contributions. Repeated findings can push the uncapped sum over 100.
 
-Implemented tools: exact known-domain matching across 15 reference brands, brand spelling heuristic, RDAP domain age when available, optional Google threat lookup, VPA syntax parsing, basic phone/SMS header extraction, keyword retrieval over 12 curated patterns, urgency detection, and hashed local report lookup. Synthetic `.example` seed entries are clearly labelled; they are not reports about real people.
+Implemented tools: exact known-domain matching across 15 reference brands, brand spelling heuristic, RDAP domain age when available, optional Google threat lookup, VPA syntax parsing, basic phone/SMS header extraction, 12 keyword-classified scam patterns plus semantic retrieval over six cited official-guidance passages, urgency detection, and hashed local report lookup. Synthetic `.example` seed entries are clearly labelled; they are not reports about real people.
 
-Explicit limits: no suspicious URL navigation, redirect-chain or TLS-certificate inspection; no public NPCI VPA ownership/validity validation; no subscriber-identity check; phone extraction is primarily Indian mobile format; no vector RAG index. Unavailable checks are surfaced, not treated as clean. Reference domains are a finite list, so a mismatch can be inconclusive. No finding establishes criminal conduct. An exact domain match does not verify content or a message. OCR requires human review, particularly in Devanagari or low-quality screenshots.
+Explicit limits: no suspicious URL navigation, redirect-chain or TLS-certificate inspection; no public NPCI VPA ownership/validity validation; no subscriber-identity check; phone extraction is primarily Indian mobile format; the small RAG corpus is manually reviewed and not a broad detection benchmark. Unavailable checks are surfaced, not treated as clean. Reference domains are a finite list, so a mismatch can be inconclusive. No finding establishes criminal conduct. An exact domain match does not verify content or a message. OCR requires human review, particularly in Devanagari or low-quality screenshots.
 
 ## Recovery and approval
 
@@ -200,10 +192,28 @@ node tests/evaluate-ocr.mjs
 
 Screenshot fixture rendering requires Poppler (`pdftoppm`) on the machine.
 
-The current suite contains 56 local tests (29 JavaScript, 27 Python), including native Gemini transport, bounded tool calls, provider failure, access isolation and Hindi/Marathi credential-request word order. This count is functional regression coverage.
+The current suite contains 64 local tests (37 JavaScript, 27 Python), including native Gemini transport, bounded tool calls, provider failure, access isolation and Hindi/Marathi credential-request word order. This count is functional regression coverage.
 
 [Sourced evaluation](docs/SOURCED-EVALUATION.md) records five historical excerpts tested through live Gemini locally: **5/5 category matches, 0/5 warning verdicts**. This exposes a scoring limitation and does not establish scam-detection accuracy. The saved run, frozen inputs and browser screenshots are under `output/evaluation/`. Authored text/OCR fixture measurements remain separate.
 
 The browser flow was exercised for Hindi intake, actual model tool-call trace, A→C triage, draft editing, approval, PDF and calendar downloads. The captured Hindi payment amount and message are synthetic. Live Gemini worked; provider vision, credentialed Safe Browsing, a real IdP, Docker execution and a new public deployment remain unverified.
 
 See [the demo walkthrough](docs/DEMO.md) and [five-slide pitch](docs/PITCH.md). Generated local artifacts are in `output/demo/` and `output/presentation/final/`; these are excluded from Git and unsigned.
+
+## FA activity package and semantic RAG
+
+See [the 12-section report](docs/FA-REPORT.md), [test report](docs/FA-TEST-REPORT.md), [architecture](docs/FA-ARCHITECTURE.mmd), [executable prompts](docs/PROMPTS.md) and [viva preparation](docs/FA-VIVA.md). Printable documents and the reviewed source ZIP are generated under `output/fa/`. Student identity fields must be completed before submission.
+
+`data/guidance.mjs` holds six reviewed paraphrases with source IDs, URLs and review dates. `data/guidance-index.mjs` holds public Gemini document embeddings (768 dimensions). `lib/rag.mjs` validates the corpus hash, embeds a contact-redacted query, ranks normalized cosine similarity, and returns top-three citations above 0.35. Retrieved context augments classification, and validated model-selected IDs compose the extractive guidance answer. Guidance does not affect the risk score. The Retrieved guidance tab exposes semantic mode or explicit keyword fallback, candidate passages and selected citations. Excerpts currently use English. Changing recovery answers marks original retrieval stale until reanalysis.
+
+The existing server-side Gemini key enables query embeddings. No new key or SDK is required. Rebuild the index only when reviewed corpus text changes:
+
+```bash
+node scripts/build-guidance-index.mjs
+node scripts/evaluate-rag.mjs
+node scripts/fa-scenarios.mjs
+```
+
+The builder reads `GEMINI_API_KEY` from the environment or ignored `.dev.vars`, and writes only public corpus vectors. The evaluator uses synthetic queries, writes a redacted receipt, and makes real provider calls. Five diagnostic top-three matches are not general accuracy. Without a key, quota or a compatible index, retrieval visibly falls back to keywords. Treat the similarity floor as a prototype relevance heuristic. The app uses constrained extractive RAG instead of accepting unrestricted financial/legal prose.
+
+**Dependency remediation (4 October 2026):** removed the unused vinext/Sites build adapter and Next-specific lint configuration, which introduced vulnerable `fast-glob → micromatch → braces`. The canonical Vercel frontend uses React/Vite, with TypeScript ESLint. The lockfile contains none of these three vulnerable-chain packages and npm audit passes without an advisory exception. Release still requires the full gate, passing CI and independent PR approval.

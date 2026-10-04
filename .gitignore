@@ -14,13 +14,14 @@ output/
 *.tsbuildinfo
 
 .pytest_cache/
-
 .env.*
 !.env.example
 .vinext/
 .security-venv/
 backups/
 .security/
-
 .DS_Store
 dist-demo/
+.vercel/
+.vercel
+.env*

@@ -231,7 +231,7 @@ async function main() {
       result.code = failure.code ?? 65;
     }
     if (result.code === 0 && !result.signal) {
-      accessSync("node_modules/.bin/vinext", constants.X_OK);
+      accessSync("node_modules/.bin/vite", constants.X_OK);
       const lock = readFileSync("pnpm-lock.yaml");
       writeFileSync("node_modules/.sites-install.json", `${JSON.stringify({
         package_manager: "pnpm@11.25.0",

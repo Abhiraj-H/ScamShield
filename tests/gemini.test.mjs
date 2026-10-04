@@ -39,7 +39,7 @@ test('Gemini quota failures fall back visibly without leaking provider payloads'
 });
 test('Gemini access denial stops model calls and exposes a safe fallback',async()=>{
  const original=fetch;let requests=0;
- try{globalThis.fetch=async()=>{requests++;return Response.json({error:{message:config.GEMINI_API_KEY}},{status:403});};const r=await analyze({text:'Send OTP now. Pay merchant@ybl.'},config);assert.equal(requests,1);assert.equal(r.mode,'rules');assert.equal(r.agent.completed,false);assert.deepEqual(r.agent.calls,[]);assert.ok(r.trace.some(t=>/Model access denied/.test(t.summary)));assert.ok(!JSON.stringify(r).includes(config.GEMINI_API_KEY));}finally{globalThis.fetch=original;}
+ try{globalThis.fetch=async()=>{requests++;return Response.json({error:{message:config.GEMINI_API_KEY}},{status:403});};const r=await analyze({text:'Send OTP now. Pay merchant@ybl.'},config);assert.equal(requests,2);assert.equal(r.retrieval.mode,'lexical-fallback');assert.equal(r.mode,'rules');assert.equal(r.agent.completed,false);assert.deepEqual(r.agent.calls,[]);assert.ok(r.trace.some(t=>/Model access denied/.test(t.summary)));assert.ok(!JSON.stringify(r).includes(config.GEMINI_API_KEY));}finally{globalThis.fetch=original;}
 });
 test('Gemini vision maps validated inline images and rejects invented model paths',async()=>{
  const original=fetch;let body;

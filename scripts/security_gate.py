@@ -50,7 +50,7 @@ def gate():
                 shutil.copyfile(source,destination)
         run('Secrets (working tree source)',[str(leaks),'dir','--redact','--config',str(ROOT/'.gitleaks.toml'),'--report-format','json','--report-path',str(OUT/'secrets.json'),temp])
     run('Secrets (Git history)',[str(leaks),'git','--redact','--config','.gitleaks.toml','--report-format','json','--report-path',str(OUT/'secrets-history.json'),'.'])
-    run('SAST JavaScript/TypeScript',[str(semgrep),'scan','--config','security/semgrep.yml','--metrics','off','--disable-version-check','--error','--json','--output',str(OUT/'sast-web.json'),'app','lib','frontend','backend'])
+    run('SAST JavaScript/TypeScript',[str(semgrep),'scan','--config','security/semgrep.yml','--metrics','off','--disable-version-check','--error','--json','--output',str(OUT/'sast-web.json'),'app','api','lib','frontend','backend'])
     run('SAST Python',[python,'-m','bandit','-r','backend','-f','json','-o',str(OUT/'sast-python.json')])
     for folder,label in [('.', 'web'),('backend','engine')]:
         run('SCA npm '+label,['npm','audit','--prefix',folder,'--audit-level=low','--json'],label+'-audit.json')
@@ -61,11 +61,15 @@ def gate():
     run('API security and restore tests',[python,'-m','pytest','tests','-q'],'tests-python.txt')
     run('Production build',['npm','run','build'],'build.txt')
     run('Standalone judge demo build',['npm','run','build:demo'],'build-demo.txt')
+    with tempfile.TemporaryDirectory(prefix='scamshield-frontend-scan-') as temp:
+        # Scan a copy outside ignored build directories, so Gitleaks examines real output bytes.
+        shutil.copytree(ROOT/'dist-demo',Path(temp)/'frontend')
+        run('Secrets (built frontend)',[str(leaks),'dir','--redact','--config',str(ROOT/'.gitleaks.toml'),'--report-format','json','--report-path',str(OUT/'secrets-built.json'),temp])
     for folder,label in [('.', 'web'),('backend','engine')]:
         run('SBOM npm '+label,['npm','sbom','--prefix',folder,'--sbom-format','cyclonedx'],label+'-sbom.cdx.json')
     run('SBOM Python',[python,'-m','pip_audit','-r','backend/requirements.lock','--format','cyclonedx-json','--output',str(OUT/'python-sbom.cdx.json')])
     if source_digest()!=initial:raise RuntimeError('Source changed during scanning; rerun checks')
-    report={'passed':True,'time':datetime.now(timezone.utc).isoformat(),'source_sha256':initial,'base_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'checks':17,'signed':False}
+    report={'passed':True,'time':datetime.now(timezone.utc).isoformat(),'source_sha256':initial,'base_commit':subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),'checks':18,'signed':False}
     (OUT/'gate.json').write_text(json.dumps(report,indent=2)+'\n')
     print('All checks passed. Release still requires a reviewed PR, CI and signed provenance.')
 
